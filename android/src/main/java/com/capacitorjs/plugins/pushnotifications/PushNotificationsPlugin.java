@@ -1,14 +1,23 @@
 package com.capacitorjs.plugins.pushnotifications;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.service.notification.StatusBarNotification;
+import android.util.Log;
+
+import com.capacitorjs.plugins.hmslocalnotifications.LocalNotification;
+import com.capacitorjs.plugins.hmslocalnotifications.LocalNotificationManager;
+import com.capacitorjs.plugins.hmslocalnotifications.NotificationStorage;
 import com.getcapacitor.Bridge;
+import com.getcapacitor.CapConfig;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -17,24 +26,30 @@ import com.getcapacitor.PluginHandle;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.RemoteMessage;
+import com.huawei.agconnect.AGConnectInstance;
+import com.huawei.hms.aaid.HmsInstanceId;
+import com.huawei.hms.common.ApiException;
+import com.huawei.hms.push.HmsMessaging;
+import com.huawei.hms.push.RemoteMessage;
+
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 @CapacitorPlugin(name = "PushNotifications", permissions = @Permission(strings = {}, alias = "receive"))
 public class PushNotificationsPlugin extends Plugin {
 
+    private static final String CLIENT_APP_ID = "client/app_id";
+    private static final String HCM = "HCM";
+
     public static Bridge staticBridge = null;
     public static RemoteMessage lastMessage = null;
     public NotificationManager notificationManager;
-    public MessagingService firebaseMessagingService;
+    public MessagingService huaweiMessagingService;
     private NotificationChannelManager notificationChannelManager;
 
     private static final String EVENT_TOKEN_CHANGE = "registration";
@@ -42,7 +57,7 @@ public class PushNotificationsPlugin extends Plugin {
 
     public void load() {
         notificationManager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-        firebaseMessagingService = new MessagingService();
+        huaweiMessagingService = new MessagingService();
 
         staticBridge = this.bridge;
         if (lastMessage != null) {
@@ -57,11 +72,11 @@ public class PushNotificationsPlugin extends Plugin {
     protected void handleOnNewIntent(Intent data) {
         super.handleOnNewIntent(data);
         Bundle bundle = data.getExtras();
-        if (bundle != null && bundle.containsKey("google.message_id")) {
+        if (bundle != null && bundle.containsKey("msgId")) {
             JSObject notificationJson = new JSObject();
             JSObject dataObject = new JSObject();
             for (String key : bundle.keySet()) {
-                if (key.equals("google.message_id")) {
+                if (key.equals("msgId")) {
                     notificationJson.put("id", bundle.get(key));
                 } else {
                     Object value = bundle.get(key);
@@ -79,29 +94,16 @@ public class PushNotificationsPlugin extends Plugin {
 
     @PluginMethod
     public void register(PluginCall call) {
-        FirebaseMessaging.getInstance().setAutoInitEnabled(true);
-        FirebaseInstanceId
-            .getInstance()
-            .getInstanceId()
-            .addOnSuccessListener(
-                getActivity(),
-                new OnSuccessListener<InstanceIdResult>() {
-                    @Override
-                    public void onSuccess(InstanceIdResult instanceIdResult) {
-                        sendToken(instanceIdResult.getToken());
-                    }
-                }
-            );
-        FirebaseInstanceId
-            .getInstance()
-            .getInstanceId()
-            .addOnFailureListener(
-                new OnFailureListener() {
-                    public void onFailure(Exception e) {
-                        sendError(e.getLocalizedMessage());
-                    }
-                }
-            );
+        Context context = getContext();
+        String appId = AGConnectInstance.getInstance().getOptions().getString(PushNotificationsPlugin.CLIENT_APP_ID);
+        HmsMessaging.getInstance(context).setAutoInitEnabled(true);
+
+        try {
+            String token = HmsInstanceId.getInstance(context).getToken(appId, PushNotificationsPlugin.HCM);
+            sendToken(token);
+        } catch (ApiException e) {
+            sendError(e.getLocalizedMessage());
+        }
         call.resolve();
     }
 
@@ -207,22 +209,29 @@ public class PushNotificationsPlugin extends Plugin {
         }
     }
 
-    public static void sendRemoteMessage(RemoteMessage remoteMessage) {
+    public static void sendRemoteMessage(RemoteMessage remoteMessage, Context context) {
         PushNotificationsPlugin pushPlugin = PushNotificationsPlugin.getPushNotificationsInstance();
         if (pushPlugin != null) {
             pushPlugin.fireNotification(remoteMessage);
         } else {
-            lastMessage = remoteMessage;
+            PushNotificationsPlugin.scheduleBackground(remoteMessage, context);
         }
     }
 
     public void fireNotification(RemoteMessage remoteMessage) {
+        JSObject remoteMessageData = PushNotificationsPlugin.generateRemoteMessageData(remoteMessage);
+        Log.i("HMS", "notifyListeners pushNotificationReceived");
+
+        notifyListeners("pushNotificationReceived", remoteMessageData, true);
+    }
+
+    public static JSObject generateRemoteMessageData(RemoteMessage remoteMessage) {
         JSObject remoteMessageData = new JSObject();
 
         JSObject data = new JSObject();
         remoteMessageData.put("id", remoteMessage.getMessageId());
-        for (String key : remoteMessage.getData().keySet()) {
-            Object value = remoteMessage.getData().get(key);
+        for (String key : remoteMessage.getDataOfMap().keySet()) {
+            Object value = remoteMessage.getDataOfMap().get(key);
             data.put(key, value);
         }
         remoteMessageData.put("data", data);
@@ -238,8 +247,7 @@ public class PushNotificationsPlugin extends Plugin {
                 remoteMessageData.put("link", link.toString());
             }
         }
-
-        notifyListeners("pushNotificationReceived", remoteMessageData, true);
+        return remoteMessageData;
     }
 
     public static PushNotificationsPlugin getPushNotificationsInstance() {
@@ -251,5 +259,73 @@ public class PushNotificationsPlugin extends Plugin {
             return (PushNotificationsPlugin) handle.getInstance();
         }
         return null;
+    }
+
+    public static void scheduleBackground(RemoteMessage remoteMessage, Context context) {
+        Log.i("HMS", "scheduleBackground");
+        NotificationStorage notificationStorage = new NotificationStorage(context);
+        CapConfig config = CapConfig.loadDefault(context);
+        LocalNotificationManager localNotificationManager = new LocalNotificationManager(notificationStorage, null, context, config);
+
+        JSObject remoteMessageData = PushNotificationsPlugin.generateRemoteMessageData(remoteMessage);
+        JSObject data = remoteMessageData.getJSObject("data");;
+
+        if (data == null) {
+            return;
+        }
+
+        JSArray jsArray = new JSArray();
+        JSObject notification = new JSObject();
+        notification.put("id", data.getInteger("notification_id"));
+        notification.put("title", data.getString("title"));
+        notification.put("body", data.getString("body"));
+        notification.put("autoCancel", true);
+        notification.put("extra", data);
+
+
+        jsArray.put(notification);
+        List<LocalNotification> localNotifications = PushNotificationsPlugin.buildNotificationList(jsArray);
+
+        if (localNotifications == null) {
+            return;
+        }
+        JSONArray ids = localNotificationManager.schedule(null, localNotifications);
+        if (ids != null) {
+            notificationStorage.appendNotifications(localNotifications);
+        }
+
+    }
+
+    /**
+     * Build list of the notifications from remote plugin call
+     */
+    public static List<LocalNotification> buildNotificationList(JSArray notificationArray) {
+        if (notificationArray == null) {
+            return null;
+        }
+        List<LocalNotification> resultLocalNotifications = new ArrayList<>(notificationArray.length());
+        List<JSONObject> notificationsJson;
+        try {
+            notificationsJson = notificationArray.toList();
+        } catch (JSONException e) {
+            return null;
+        }
+
+        for (JSONObject jsonNotification : notificationsJson) {
+            JSObject notification = null;
+            try {
+                notification = JSObject.fromJSONObject(jsonNotification);
+            } catch (JSONException e) {
+                return null;
+            }
+
+            try {
+                LocalNotification activeLocalNotification = LocalNotification.buildNotificationFromJSObject(notification);
+                resultLocalNotifications.add(activeLocalNotification);
+            } catch (ParseException e) {
+                return null;
+            }
+        }
+        return resultLocalNotifications;
     }
 }

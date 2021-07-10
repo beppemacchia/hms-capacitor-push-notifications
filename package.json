@@ -1,7 +1,7 @@
 {
   "name": "@capacitor/push-notifications",
-  "version": "1.0.3",
-  "description": "The Push Notifications API provides access to native push notifications.",
+  "version": "1.0.16",
+  "description": "The Push Notifications API provides access to native push notifications for HMS Device.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -13,14 +13,14 @@
     "ios/Plugin/",
     "CapacitorPushNotifications.podspec"
   ],
-  "author": "Ionic <hi@ionicframework.com>",
+  "author": "Giuseppe Macchia",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ionic-team/capacitor-plugins.git"
+    "url": "git+https://github.com/beppemacchia/hms-capacitor-push-notifications.git"
   },
   "bugs": {
-    "url": "https://github.com/ionic-team/capacitor-plugins/issues"
+    "url": "https://github.com/beppemacchia/hms-capacitor-push-notifications/issues"
   },
   "keywords": [
     "capacitor",

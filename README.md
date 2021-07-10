@@ -33,7 +33,7 @@ The Push Notification API uses [Firebase Cloud Messaging](https://firebase.googl
 
 This plugin will use the following project variables (defined in your app's `variables.gradle` file):
 
-- `$firebaseMessagingVersion` version of `com.google.firebase:firebase-messaging` (default: `21.0.1`)
+- `$hmsVersion` version of `com.huawei.hms:push` (default: `5.3.0.301`)
 
 ---
 

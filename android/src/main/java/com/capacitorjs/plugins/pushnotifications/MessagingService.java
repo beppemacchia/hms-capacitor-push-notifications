@@ -1,15 +1,15 @@
 package com.capacitorjs.plugins.pushnotifications;
 
 import androidx.annotation.NonNull;
-import com.google.firebase.messaging.FirebaseMessagingService;
-import com.google.firebase.messaging.RemoteMessage;
+import com.huawei.hms.push.HmsMessageService;
+import com.huawei.hms.push.RemoteMessage;
 
-public class MessagingService extends FirebaseMessagingService {
+public class MessagingService extends HmsMessageService {
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        PushNotificationsPlugin.sendRemoteMessage(remoteMessage);
+        PushNotificationsPlugin.sendRemoteMessage(remoteMessage, getApplicationContext());
     }
 
     @Override
