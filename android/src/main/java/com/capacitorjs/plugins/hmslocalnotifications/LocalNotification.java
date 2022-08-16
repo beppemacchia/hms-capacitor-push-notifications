@@ -4,8 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
-
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
@@ -226,6 +224,11 @@ public class LocalNotification {
         for (JSONObject jsonNotification : notificationsJson) {
             JSObject notification = null;
             try {
+                long identifier = jsonNotification.getLong("id");
+                if (identifier > Integer.MAX_VALUE || identifier < Integer.MIN_VALUE) {
+                    call.reject("The identifier should be a Java int");
+                    return null;
+                }
                 notification = JSObject.fromJSONObject(jsonNotification);
             } catch (JSONException e) {
                 call.reject("Invalid JSON object sent to NotificationPlugin", e);
@@ -314,7 +317,7 @@ public class LocalNotification {
                 jsSchedule.put("at", schedule.getAt());
                 jsSchedule.put("every", schedule.getEvery());
                 jsSchedule.put("count", schedule.getCount());
-                jsSchedule.put("on", schedule.getOn());
+                jsSchedule.put("on", schedule.getOnObj());
                 jsSchedule.put("repeats", schedule.isRepeating());
                 jsNotification.put("schedule", jsSchedule);
             }
@@ -435,11 +438,9 @@ public class LocalNotification {
         result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);
         result = 31 * result + (actionTypeId != null ? actionTypeId.hashCode() : 0);
         result = 31 * result + (group != null ? group.hashCode() : 0);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            result = 31 * result + Boolean.hashCode(groupSummary);
-            result = 31 * result + Boolean.hashCode(ongoing);
-            result = 31 * result + Boolean.hashCode(autoCancel);
-        }
+        result = 31 * result + Boolean.hashCode(groupSummary);
+        result = 31 * result + Boolean.hashCode(ongoing);
+        result = 31 * result + Boolean.hashCode(autoCancel);
         result = 31 * result + (extra != null ? extra.hashCode() : 0);
         result = 31 * result + (attachments != null ? attachments.hashCode() : 0);
         result = 31 * result + (schedule != null ? schedule.hashCode() : 0);

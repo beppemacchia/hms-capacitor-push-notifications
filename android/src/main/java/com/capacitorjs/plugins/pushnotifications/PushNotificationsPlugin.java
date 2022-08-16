@@ -1,29 +1,19 @@
 package com.capacitorjs.plugins.pushnotifications;
 
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import com.capacitorjs.plugins.hmslocalnotifications.LocalNotification;
 import com.capacitorjs.plugins.hmslocalnotifications.LocalNotificationManager;
 import com.capacitorjs.plugins.hmslocalnotifications.NotificationStorage;
-import com.getcapacitor.Bridge;
-import com.getcapacitor.CapConfig;
-import com.getcapacitor.JSArray;
-import com.getcapacitor.JSObject;
-import com.getcapacitor.Plugin;
-import com.getcapacitor.PluginCall;
-import com.getcapacitor.PluginHandle;
-import com.getcapacitor.PluginMethod;
+import com.getcapacitor.*;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.huawei.agconnect.AGConnectInstance;
@@ -34,6 +24,7 @@ import com.huawei.hms.push.RemoteMessage;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -65,7 +56,7 @@ public class PushNotificationsPlugin extends Plugin {
             lastMessage = null;
         }
 
-        notificationChannelManager = new NotificationChannelManager(getActivity(), notificationManager);
+        notificationChannelManager = new NotificationChannelManager(getActivity(), notificationManager, getConfig());
     }
 
     @Override
@@ -117,6 +108,7 @@ public class PushNotificationsPlugin extends Plugin {
                 JSObject jsNotif = new JSObject();
 
                 jsNotif.put("id", notif.getId());
+                jsNotif.put("tag", notif.getTag());
 
                 Notification notification = notif.getNotification();
                 if (notification != null) {
@@ -147,23 +139,24 @@ public class PushNotificationsPlugin extends Plugin {
     public void removeDeliveredNotifications(PluginCall call) {
         JSArray notifications = call.getArray("notifications");
 
-        List<Integer> ids = new ArrayList<>();
         try {
             for (Object o : notifications.toList()) {
                 if (o instanceof JSONObject) {
                     JSObject notif = JSObject.fromJSONObject((JSONObject) o);
+                    String tag = notif.getString("tag");
                     Integer id = notif.getInteger("id");
-                    ids.add(id);
+
+                    if (tag == null) {
+                        notificationManager.cancel(id);
+                    } else {
+                        notificationManager.cancel(tag, id);
+                    }
                 } else {
                     call.reject("Expected notifications to be a list of notification objects");
                 }
             }
         } catch (JSONException e) {
             call.reject(e.getMessage());
-        }
-
-        for (int id : ids) {
-            notificationManager.cancel(id);
         }
 
         call.resolve();

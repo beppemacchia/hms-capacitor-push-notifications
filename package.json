@@ -1,6 +1,6 @@
 {
   "name": "@capacitor/push-notifications",
-  "version": "1.0.16",
+  "version": "4.1.2",
   "description": "The Push Notifications API provides access to native push notifications for HMS Device.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -29,11 +29,11 @@
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
-    "verify:ios": "cd ios && pod install && xcodebuild -workspace Plugin.xcworkspace -scheme Plugin && cd ..",
+    "verify:ios": "cd ios && pod install && xcodebuild -workspace Plugin.xcworkspace -scheme Plugin -destination generic/platform=iOS && cd ..",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
     "verify:web": "npm run build",
     "lint": "npm run eslint && npm run prettier -- --check && npm run swiftlint -- lint",
-    "fmt": "npm run eslint -- --fix && npm run prettier -- --write && npm run swiftlint -- autocorrect --format",
+    "fmt": "npm run eslint -- --fix && npm run prettier -- --write && npm run swiftlint -- --fix --format",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
     "swiftlint": "node-swiftlint",
@@ -41,14 +41,15 @@
     "build": "npm run clean && npm run docgen && tsc && rollup -c rollup.config.js",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "publish:cocoapod": "pod trunk push ./CapacitorPushNotifications.podspec --allow-warnings"
   },
   "devDependencies": {
-    "@capacitor/android": "^3.0.0",
-    "@capacitor/cli": "^3.0.0",
-    "@capacitor/core": "^3.0.0",
-    "@capacitor/docgen": "0.0.17",
-    "@capacitor/ios": "^3.0.0",
+    "@capacitor/android": "^4.0.0",
+    "@capacitor/cli": "^4.0.0",
+    "@capacitor/core": "^4.0.0",
+    "@capacitor/docgen": "0.2.0",
+    "@capacitor/ios": "^4.0.0",
     "@ionic/eslint-config": "^0.3.0",
     "@ionic/prettier-config": "~1.0.1",
     "@ionic/swiftlint-config": "^1.1.2",
@@ -61,7 +62,7 @@
     "typescript": "~4.1.5"
   },
   "peerDependencies": {
-    "@capacitor/core": "^3.0.0"
+    "@capacitor/core": "^4.0.0"
   },
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",

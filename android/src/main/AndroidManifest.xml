@@ -7,8 +7,7 @@
 
     <meta-data
         android:name="install_channel"
-        android:value="AppGallery">
-    </meta-data>
+        android:value="AppGallery"></meta-data>
 
     <application>
         <receiver android:name="com.capacitorjs.plugins.hmslocalnotifications.TimedNotificationPublisher" />
@@ -30,6 +29,6 @@
         </service>
     </application>
 
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 </manifest>
