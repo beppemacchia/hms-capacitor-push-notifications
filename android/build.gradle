@@ -4,7 +4,7 @@ ext {
     androidxAppCompatVersion = project.hasProperty('androidxAppCompatVersion') ? rootProject.ext.androidxAppCompatVersion : '1.6.1'
     androidxJunitVersion = project.hasProperty('androidxJunitVersion') ? rootProject.ext.androidxJunitVersion : '1.1.5'
     androidxEspressoCoreVersion = project.hasProperty('androidxEspressoCoreVersion') ? rootProject.ext.androidxEspressoCoreVersion : '3.5.1'
-    hmsVersion = project.hasProperty('hmsVersion') ? rootProject.ext.hmsVersion : '6.7.0.300'
+    hmsVersion = project.hasProperty('hmsVersion') ? rootProject.ext.hmsVersion : '6.11.0.300'
 }
 
 buildscript {
@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.huawei.agconnect:agcp:1.9.1.300'
-        classpath 'com.android.tools.build:gradle:8.0.0'
+        classpath 'com.android.tools.build:gradle:8.2.1'
         if (System.getenv("CAP_PLUGIN_PUBLISH") == "true") {
             classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
         }
@@ -33,10 +33,10 @@ if (System.getenv("CAP_PLUGIN_PUBLISH") == "true") {
 
 android {
     namespace "com.capacitorjs.plugins.pushnotifications"
-    compileSdkVersion project.hasProperty('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 33
+    compileSdk project.hasProperty('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 34
     defaultConfig {
         minSdkVersion project.hasProperty('minSdkVersion') ? rootProject.ext.minSdkVersion : 22
-        targetSdkVersion project.hasProperty('targetSdkVersion') ? rootProject.ext.targetSdkVersion : 33
+        targetSdkVersion project.hasProperty('targetSdkVersion') ? rootProject.ext.targetSdkVersion : 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
