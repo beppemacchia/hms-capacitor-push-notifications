@@ -1,13 +1,9 @@
 # @capacitor/push-notifications
 
-The Push Notifications API provides access to native push notifications.
+The Push Notifications API provides access to native push notifications for HMS Devices.
 
 ## Install
-
-```bash
-npm install @capacitor/push-notifications
-npx cap sync
-```
+Build and install yourself
 
 ## iOS
 
