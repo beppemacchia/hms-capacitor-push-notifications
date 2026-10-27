@@ -9,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
-
 import com.capacitorjs.plugins.hmslocalnotifications.LocalNotification;
 import com.capacitorjs.plugins.hmslocalnotifications.LocalNotificationManager;
 import com.capacitorjs.plugins.hmslocalnotifications.NotificationStorage;
@@ -21,12 +20,10 @@ import com.huawei.hms.aaid.HmsInstanceId;
 import com.huawei.hms.common.ApiException;
 import com.huawei.hms.push.HmsMessaging;
 import com.huawei.hms.push.RemoteMessage;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,7 +68,7 @@ public class PushNotificationsPlugin extends Plugin {
                     notificationJson.put("id", bundle.get(key));
                 } else {
                     Object value = bundle.get(key);
-                    String valueStr = (value != null) ? value.toString() : null;
+                    String valueStr = value != null ? value.toString() : null;
                     dataObject.put(key, valueStr);
                 }
             }
@@ -261,7 +258,7 @@ public class PushNotificationsPlugin extends Plugin {
         LocalNotificationManager localNotificationManager = new LocalNotificationManager(notificationStorage, null, context, config);
 
         JSObject remoteMessageData = PushNotificationsPlugin.generateRemoteMessageData(remoteMessage);
-        JSObject data = remoteMessageData.getJSObject("data");;
+        JSObject data = remoteMessageData.getJSObject("data");
 
         if (data == null) {
             return;
@@ -275,7 +272,6 @@ public class PushNotificationsPlugin extends Plugin {
         notification.put("autoCancel", true);
         notification.put("extra", data);
 
-
         jsArray.put(notification);
         List<LocalNotification> localNotifications = PushNotificationsPlugin.buildNotificationList(jsArray);
 
@@ -286,7 +282,6 @@ public class PushNotificationsPlugin extends Plugin {
         if (ids != null) {
             notificationStorage.appendNotifications(localNotifications);
         }
-
     }
 
     /**

@@ -18,7 +18,6 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.RemoteInput;
-
 import com.capacitorjs.plugins.pushnotifications.R;
 import com.getcapacitor.CapConfig;
 import com.getcapacitor.JSObject;

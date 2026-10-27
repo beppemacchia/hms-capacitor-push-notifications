@@ -52,9 +52,7 @@ export interface PushNotificationsPlugin {
    *
    * @since 1.0.0
    */
-  removeDeliveredNotifications(
-    delivered: DeliveredNotifications,
-  ): Promise<void>;
+  removeDeliveredNotifications(delivered: DeliveredNotifications): Promise<void>;
 
   /**
    * Remove all the notifications from the notifications screen.
